@@ -3,16 +3,20 @@ const mysql = require('mysql2');
 const inquirer = require('inquirer');
 const Connection = require('mysql2/typings/mysql/lib/Connection');
 const consoleTable = require('console.table');
+require('dotenv').config()
 
 // connecting to mysql
 
-const database = mysql.createConnection({
+const database = mysql.createConnection(
+    process.env.DB_NAME,
+    process.env.DB_USER,
+    process.env.DB_PASSWORD,
+    {
     host: 'localhost',
     port: 3001,
-    user:'root',
-    password: 'Trout1993!',
-    database: 'tracker_db'
-},
+    dialect: 'mysql'
+    }
+    ,
 console.log('Connected to Employee Tracker Database'));
 
 // mesages to prompt using inquirer in an array
