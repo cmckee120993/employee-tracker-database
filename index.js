@@ -207,10 +207,10 @@ function viewByManager() {
 
 function addEmployee() {
     // access to roles from database
-    let roles = connection.query(`SELECT * FROM role`);
+    let roles = database.query(`SELECT * FROM role`);
 
     // access to employees from database
-    let managers = connection.query(`SELECT * FROM employee`);
+    let managers = database.query(`SELECT * FROM employee`);
 
     inquirer.prompt(
         [{
@@ -270,7 +270,7 @@ function deleteSomething() {
     }
    ]);
 
-   connection.query('DELETE FROM employee WHERE ?'),
+   database.query('DELETE FROM employee WHERE ?'),
    {
     id: answer.first
    }, function (err) {
@@ -281,7 +281,7 @@ function deleteSomething() {
 };
 
 function updateRole() {
-    let roles = connection.query(`SELECT * FROM role`);
+    let roles = database.query(`SELECT * FROM role`);
     const { role } = inquirer.prompt([
         {
             name: "employee_id",
@@ -295,11 +295,21 @@ function updateRole() {
             choices: () => roles.map(role.id, role.title)
         }
     ])
-    connection.query(`UPDATE employee 
+    database.query(`UPDATE employee 
     SET role_id = ${role.role.role.id} 
     WHERE employee.id = ${role.employee_id}`, (err, res) => {
         if (err) throw err;
         console.log('Role is updated!');
         prompt();
+    });
+};
+
+// viewCompanyBudget function
+
+function viewCompanyBudget() {
+    const query = 'SELECT SUM (salary) FROM role';
+    database.query(query, (err, res) => {
+        if (err) throw err;
+        console.log(`Your company budget is ${res} dollars`)
     });
 };
