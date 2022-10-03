@@ -1,9 +1,9 @@
 // requiring packages
 const mysql = require('mysql2');
 const inquirer = require('inquirer');
-const Connection = require('mysql2/typings/mysql/lib/Connection');
-const consoleTable = require('console.table');
-require('dotenv').config()
+// const Connection = require('mysql2/typings/mysql/lib/Connection');
+require('console.table');
+require('dotenv').config();
 
 // connecting to mysql
 
