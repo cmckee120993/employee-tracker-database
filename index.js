@@ -13,7 +13,7 @@ const database = mysql.createConnection(
     process.env.DB_PASSWORD,
     {
     host: 'localhost',
-    port: 3001,
+    port: 3306,
     dialect: 'mysql'
     }
     ,
@@ -191,9 +191,17 @@ function viewByDepartment() {
 
 // viewByManager function
 
-// function viewByManager() {
-//     const query = `SELECT `
-// }
+function viewByManager() {
+    const query = `SELECT CONCAT (manager.first_name, '', manager.last_name) AS manager, department.name AS department, employee.id, employee.first_name, employee.last_name, role.title 
+    FROM employee
+    ORDER BY manager;`;
+    database.query(query, (err, res) => {
+        if (err) throw err;
+        console.log('View Employee by Manager');
+        console.table(res);
+        prompt();
+    })
+}
 
 // addEmployees function
 
@@ -249,6 +257,49 @@ function addEmployee() {
         });
 
         console.log('New employee is now added. View All Employees to verify.');
+        prompt();
+    });
+};
+
+function deleteSomething() {
+   const answer = inquirer.prompt([
+    {
+        name: "delete",
+        type: "input",
+        message: "Enter the employee ID you want to remove."
+    }
+   ]);
+
+   connection.query('DELETE FROM employee WHERE ?'),
+   {
+    id: answer.first
+   }, function (err) {
+   if (err) throw err;
+   }
+   console.log('Employee has been removed from the system!');
+   prompt();
+};
+
+function updateRole() {
+    let roles = connection.query(`SELECT * FROM role`);
+    const { role } = inquirer.prompt([
+        {
+            name: "employee_id",
+            type: "input",
+            message: "What is the employee ID?"
+        },
+        {
+            name: "role",
+            type: "list",
+            message: "What is the new employee role?",
+            choices: () => roles.map(role.id, role.title)
+        }
+    ])
+    connection.query(`UPDATE employee 
+    SET role_id = ${role.role.role.id} 
+    WHERE employee.id = ${role.employee_id}`, (err, res) => {
+        if (err) throw err;
+        console.log('Role is updated!');
         prompt();
     });
 };
