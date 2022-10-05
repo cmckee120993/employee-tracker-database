@@ -4,20 +4,21 @@ const inquirer = require('inquirer');
 // const Connection = require('mysql2/typings/mysql/lib/Connection');
 require('console.table');
 require('dotenv').config();
+const util = require('util');
 
 // connecting to mysql
 
 const database = mysql.createConnection(
-    process.env.DB_NAME,
-    process.env.DB_USER,
-    process.env.DB_PASSWORD,
     {
-    host: 'localhost',
-    port: 3306,
-    dialect: 'mysql'
+    database: process.env.DB_NAME,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    host: 'localhost'
     }
     ,
 console.log('Connected to Employee Tracker Database'));
+
+database.query = util.promisify(database.query);
 
 // mesages to prompt using inquirer in an array
 const promptMessages = {
@@ -41,19 +42,17 @@ function prompt() {
         name: 'action',
         message: 'What would you like to do?',
         choices: [
-            promptMessages.viewEmployees,
-            promptMessages.addEmployee,
-            promptMessages.updateRole,
-            promptMessages.viewAllRoles,
-            promptMessages.addRole,
-            promptMessages.viewAllDepartments,
-            promptMessages.addDepartment,
-            promptMessages.updateManager,
-            promptMessages.viewByManager,
-            promptMessages.deleteSomething,
-            promptMessages.viewCompanyBudget,
-            promptMessages.viewByDepartment,
-            promptMessages.exit
+            'View All Employees',
+            'Add Employee',
+            'Udpate Employee Role',
+           'View All Roles',
+           'Add Role',
+            'View All Departments',
+            'Add Department',
+            'Update Employee\'s Manager',
+            'View All Managers',
+            'Delete Department, Role, or Employee',
+            'View Company\'s Total Budget'
         ]
     })
     // cases to go through depending on user choice
@@ -126,8 +125,12 @@ database.connect( err =>{
 // view employees function
 
 function viewAllEmployees() {
-    const query = `SELECT employee.id, employee.first_name, employee.last_name, role.title, department.name AS department, role.salary
-    FROM employee`
+    const query = `SELECT employee.id, employee.first_name, employee.last_name, role.title, department.name AS department, role.salary, 
+    CONCAT(manager.first_name, ' ', manager.last_name) AS manager
+    FROM employee
+    LEFT JOIN role ON employee.role_id = role.id
+    LEFT JOIN department ON role.department_id = department.id
+    LEFT JOIN employee manager ON manager.id = employee.manager_id`
 
     // connect to database for query
     database.query(query, (err, res) => {
@@ -205,12 +208,12 @@ function viewByManager() {
 
 // addEmployees function
 
-function addEmployee() {
+async function addEmployee() {
     // access to roles from database
-    let roles = database.query(`SELECT * FROM role`);
+    let roles = await database.query(`SELECT * FROM role`);
 
     // access to employees from database
-    let managers = database.query(`SELECT * FROM employee`);
+    let managers = await database.query(`SELECT * FROM employee`);
 
     inquirer.prompt(
         [{
@@ -230,7 +233,7 @@ function addEmployee() {
             choices: roles.map((role) => {
                 return {
                     name: role.title,
-                    role_id: role.id
+                    value: role.id
                 }
             }),
             message: "What is the employee\'s role?"
@@ -241,7 +244,7 @@ function addEmployee() {
             choices: managers.map((manager) => {
                 return {
                     name: `${manager.first_name} ${manager.last_name}`,
-                    manager_id: manager.id
+                    value: manager.id
                 }
             }),
             message: "Who is the employee\'s manager?"
@@ -252,8 +255,8 @@ function addEmployee() {
         {
             first_name: answers.first_name,
             last_name: answers.last_name,
-            role_id: answers.employeeRole.role_id,
-            manager_id: answers.employeeManager.manager_id
+            role_id: answers.employeeRole,
+            manager_id: answers.employeeManager
         });
 
         console.log('New employee is now added. View All Employees to verify.');
@@ -280,24 +283,36 @@ function deleteSomething() {
    prompt();
 };
 
-function updateRole() {
-    let roles = database.query(`SELECT * FROM role`);
-    const { role } = inquirer.prompt([
+async function updateRole() {
+    let roles = await database.query(`SELECT * FROM role`);
+    let employees = await database.query(`SELECT * FROM employee`);
+    const { role, employee } = await inquirer.prompt([
         {
-            name: "employee_id",
-            type: "input",
-            message: "What is the employee ID?"
+            name: "employee",
+            type: "list",
+            message: "What is the name of the employee?",
+            choices: () => employees.map((employee) => {
+                return {
+                    name: `${employee.first_name} ${employee.last_name}`,
+                    value: employee.id
+                }
+            }),
         },
         {
             name: "role",
             type: "list",
             message: "What is the new employee role?",
-            choices: () => roles.map(role.id, role.title)
-        }
+            choices: () => roles.map((role) => {
+                return {
+                    name: role.title,
+                    value: role.id
+                }
+            }
+    )}
     ])
     database.query(`UPDATE employee 
-    SET role_id = ${role.role.role.id} 
-    WHERE employee.id = ${role.employee_id}`, (err, res) => {
+    SET role_id = ${role} 
+    WHERE id = ${employee}`, (err, res) => {
         if (err) throw err;
         console.log('Role is updated!');
         prompt();
