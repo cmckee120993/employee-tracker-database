@@ -388,3 +388,38 @@ async function addDepartment() {
     prompt();
 };
 
+// updateManager Function
+async function updateManager() {
+    let employees = await database.query(`SELECT * FROM employee`);
+    const { manager, employee } = await inquirer.prompt([
+        {
+            name: "employee",
+            type: "list",
+            message: "What is the name of the employee?",
+            choices: () => employees.map((employee) => {
+                return {
+                    name: `${employee.first_name} ${employee.last_name}`,
+                    value: employee.id
+                }
+            }),
+        },
+        {
+            name: "manager",
+            type: "list",
+            message: "What is the new employee manager?",
+            choices: () => employees.map((employee) => {
+                return {
+                    name: `${employee.first_name} ${employee.last_name}`,
+                    value: employee.id
+                }
+            }
+    )}
+    ])
+    database.query(`UPDATE employee 
+    SET manager_id = ${manager} 
+    WHERE id = ${employee}`, (err, res) => {
+        if (err) throw err;
+        console.log('Manager is updated!');
+        prompt();
+    });
+};
