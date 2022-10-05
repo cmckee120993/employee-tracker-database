@@ -195,11 +195,16 @@ function viewByDepartment() {
 // viewByManager function
 
 function viewByManager() {
-    const query = `SELECT CONCAT (manager.first_name, '', manager.last_name) AS manager, department.name AS department, employee.id, employee.first_name, employee.last_name, role.title 
+    const query = `SELECT CONCAT (manager.first_name, ' ', manager.last_name) AS manager, department.name AS department, employee.id, employee.first_name, employee.last_name, role.title 
     FROM employee
+    LEFT JOIN role ON employee.role_id = role.id
+    LEFT JOIN department ON role.department_id = department.id
+    LEFT JOIN employee manager ON manager.id = employee.manager_id 
     ORDER BY manager;`;
     database.query(query, (err, res) => {
-        if (err) throw err;
+        if (err) {
+            console.log(err)
+        };
         console.log('View Employee by Manager');
         console.table(res);
         prompt();
