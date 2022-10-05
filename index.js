@@ -147,8 +147,8 @@ function viewAllEmployees() {
 // viewAllRoles function
 
 function viewAllRoles() {
-    const query = `SELECT role.id, role.title, department.name, role.salary
-    FROM employee`;
+    const query = `SELECT *
+    FROM role`;
 
     database.query(query, (err, res) => {
         if (err) {
@@ -163,8 +163,7 @@ function viewAllRoles() {
 // viewAllDepartments function
 
 function viewAllDepartments() {
-    const query =`SELECT department.id, department.name
-    FROM employee`;
+    const query =`SELECT * FROM department`;
 
     database.query(query, (err, res) => {
         if (err) {
@@ -370,3 +369,22 @@ let result = await database.query("INSERT INTO role SET ?", {
 console.log('Role added successfully.');
 prompt();
 };
+
+// addDepartment function
+
+async function addDepartment() {
+    let answer = await inquirer.prompt([
+        {
+            name: 'departmentName',
+            type: 'input',
+            message: 'What is the name of your new department?'
+        }
+    ]);
+
+    let result = await database.query("INSERT INTO department SET ?", {
+        name: answer.departmentName
+    });
+    console.log("Department was added successfully!");
+    prompt();
+};
+
