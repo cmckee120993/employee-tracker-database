@@ -1,11 +1,9 @@
 // requiring packages
 const mysql = require('mysql2');
 const inquirer = require('inquirer');
-// const Connection = require('mysql2/typings/mysql/lib/Connection');
 require('console.table');
 require('dotenv').config();
 const util = require('util');
-// const Connection = require('mysql2/typings/mysql/lib/Connection');
 
 // connecting to mysql
 
@@ -35,7 +33,8 @@ const promptMessages = {
     deleteEmployee: 'Delete an Employee',
     deleteDepartment: 'Delete a Department',
     deleteRole: 'Delete a Role',
-    viewCompanyBudget: 'View Company\'s Total Budget'
+    viewCompanyBudget: 'View Company\'s Total Budget',
+    exit: 'Exit'
 };
 
 // function to call the inquirer prompts upon connection to server
@@ -57,7 +56,8 @@ function prompt() {
             'Update Employee\'s Manager',
             'Delete an Employee',
             'Delete a Role',
-            'Delete a Department'
+            'Delete a Department',
+            'Exit'
         ]
     })
     // cases to go through depending on user choice
