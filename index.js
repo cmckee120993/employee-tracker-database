@@ -32,7 +32,9 @@ const promptMessages = {
     addDepartment: 'Add Department',
     updateManager: 'Update Employee\'s Manager',
     viewByManager: 'View All Managers',
-    deleteSomething: 'Delete Department, Role, or Employee',
+    deleteEmployee: 'Delete an Employee',
+    deleteDepartment: 'Delete a Department',
+    deleteRole: 'Delete a Role',
     viewCompanyBudget: 'View Company\'s Total Budget'
 };
 
@@ -44,16 +46,18 @@ function prompt() {
         message: 'What would you like to do?',
         choices: [
             'View All Employees',
-            'Add Employee',
-            'Udpate Employee Role',
-           'View All Roles',
-           'Add Role',
+            'View All Roles',
             'View All Departments',
-            'Add Department',
-            'Update Employee\'s Manager',
             'View All Managers',
-            'Delete Department, Role, or Employee',
-            'View Company\'s Total Budget'
+            'View Company\'s Total Budget',
+            'Add Employee',
+            'Add Role',
+            'Add Department',
+            'Udpate Employee Role',
+            'Update Employee\'s Manager',
+            'Delete an Employee',
+            'Delete a Role',
+            'Delete a Department'
         ]
     })
     // cases to go through depending on user choice
@@ -96,9 +100,17 @@ function prompt() {
                 viewByManager();
                 break;
 
-            case promptMessages.deleteSomething:
-                    deleteSomething();
-                    break;
+            case promptMessages.deleteEmployee:
+                deleteEmployee();
+                break;
+            
+            case promptMessages.deleteDepartment:
+                deleteDepartment();
+                break;
+            
+            case promptMessages.deleteRole:
+                deleteRole();
+                break;
                 
             case promptMessages.viewCompanyBudget:
                     viewCompanyBudget();
@@ -413,16 +425,8 @@ async function updateManager() {
 };
 
 // deleteSomething function
- function deleteSomething() {
-    const preference =  inquirer.prompt([
-        {
-            name: "choice",
-            type: "list",
-            message: "What would you like to delete from the system?",
-            choices: ["Employee", "Department", "Role"]
-        }
-    ]).then(async preference => {
-    if (preference === "Employee") {
+ async function deleteEmployee() {
+    
         let employees = await database.query(`SELECT * FROM employee`);
         const answer = await inquirer.prompt ([
             {
@@ -437,8 +441,11 @@ async function updateManager() {
                 })
             }
         ]);
-        database.query(`DELETE FROM employee WHERE id = ${answer}`);
-    } else if (preference === "Department") {
+        database.query(`DELETE FROM employee WHERE id = ${answer.employee}`);
+        prompt();
+    };
+
+async function deleteDepartment() {
         let departments = await database.query(`SELECT * FROM department`);
         const answer = await inquirer.prompt ([
             {
@@ -447,14 +454,18 @@ async function updateManager() {
                 message: "Which employee would you like to delete?",
                 choices: () => departments.map((department) => {
                     return {
-                        name: department.name
+                        name: department.name,
+                        value: department.id
                     }
                 })
             }
         ])
-        database.query(`DELETE FROM department WHERE name = ${answer}`);
-    } else if (preference === "Role") {
-        let roles = await roles.query(`SELECT * FROM role`);
+        database.query(`DELETE FROM department WHERE id = ${answer.department}`);
+        prompt();
+    };
+
+async function deleteRole() {
+        let roles = await database.query(`SELECT * FROM role`);
         const answer = await inquirer.prompt ([
             {
                 name: "role",
@@ -462,13 +473,12 @@ async function updateManager() {
                 message: "Which employee would you like to delete?",
                 choices: () => roles.map((role) => {
                     return {
-                        name: role.name,
+                        name: role.title,
                         value: role.id
                     }
                 })
             }
         ])
-        database.query(`DELETE FROM role WHERE id = ${answer}`);
+        database.query(`DELETE FROM role WHERE id = ${answer.role}`);
+        prompt();
     };
-});
-};
