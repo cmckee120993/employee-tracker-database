@@ -269,25 +269,6 @@ async function addEmployee() {
     });
 };
 
-function deleteSomething() {
-   const answer = inquirer.prompt([
-    {
-        name: "delete",
-        type: "input",
-        message: "Enter the employee ID you want to remove."
-    }
-   ]);
-
-   database.query('DELETE FROM employee WHERE ?'),
-   {
-    id: answer.first
-   }, function (err) {
-   if (err) throw err;
-   }
-   console.log('Employee has been removed from the system!');
-   prompt();
-};
-
 async function updateRole() {
     let roles = await database.query(`SELECT * FROM role`);
     let employees = await database.query(`SELECT * FROM employee`);
@@ -327,11 +308,13 @@ async function updateRole() {
 // viewCompanyBudget function
 
 function viewCompanyBudget() {
-    const query = 'SELECT SUM (salary) FROM role';
-    database.query(query, (err, res) => {
+    database.query('SELECT SUM(salary) AS total FROM role', (err, res) => {
         if (err) throw err;
-        console.log(`Your company budget is ${res} dollars`)
+        const budget = JSON.stringify(res[0].total);
+        console.log(`The company's total budget is ${budget} dollars.`);
+        prompt();
     });
+    
 };
 
 // addRole function
@@ -427,4 +410,65 @@ async function updateManager() {
         console.log('Manager is updated!');
         prompt();
     });
+};
+
+// deleteSomething function
+ function deleteSomething() {
+    const preference =  inquirer.prompt([
+        {
+            name: "choice",
+            type: "list",
+            message: "What would you like to delete from the system?",
+            choices: ["Employee", "Department", "Role"]
+        }
+    ]).then(async preference => {
+    if (preference === "Employee") {
+        let employees = await database.query(`SELECT * FROM employee`);
+        const answer = await inquirer.prompt ([
+            {
+                name: "employee",
+                type: "list",
+                message: "Which employee would you like to delete?",
+                choices: () => employees.map((employee) => {
+                    return {
+                        name: `${employee.first_name} ${employee.last_name}`,
+                        value: employee.id
+                    }
+                })
+            }
+        ]);
+        database.query(`DELETE FROM employee WHERE id = ${answer}`);
+    } else if (preference === "Department") {
+        let departments = await database.query(`SELECT * FROM department`);
+        const answer = await inquirer.prompt ([
+            {
+                name: "department",
+                type: "list",
+                message: "Which employee would you like to delete?",
+                choices: () => departments.map((department) => {
+                    return {
+                        name: department.name
+                    }
+                })
+            }
+        ])
+        database.query(`DELETE FROM department WHERE name = ${answer}`);
+    } else if (preference === "Role") {
+        let roles = await roles.query(`SELECT * FROM role`);
+        const answer = await inquirer.prompt ([
+            {
+                name: "role",
+                type: "list",
+                message: "Which employee would you like to delete?",
+                choices: () => roles.map((role) => {
+                    return {
+                        name: role.name,
+                        value: role.id
+                    }
+                })
+            }
+        ])
+        database.query(`DELETE FROM role WHERE id = ${answer}`);
+    };
+});
 };
